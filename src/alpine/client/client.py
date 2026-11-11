@@ -1,5 +1,6 @@
 from openai import AsyncOpenAI
 from typing import Any
+from collections.abc import AsyncGenerator
 
 from alpine.client.response import StreamEvent, TextDelta, TokenUsage, EventType
 
@@ -20,7 +21,11 @@ class LLMClient:
             await self._client.close()
             self._client = None
 
-    async def chat_Completion(self, messages: list[dict[str, Any]], stream: bool = True):
+    async def chat_Completion(
+            self,
+            messages: list[dict[str, Any]],
+            stream: bool = True
+            ) -> AsyncGenerator[StreamEvent, None]:
         client = self.get_client() 
         kwargs = {
                 "model": "nvidia/nemotron-3.5-super-vl:free",
@@ -31,12 +36,19 @@ class LLMClient:
         if stream:
             await self._stream_response()
         else:
-            await self._non_stream_response(client, kwargs)
+            event = await self._non_stream_response(client, kwargs)
+            yield event
+
+        return
 
     async def _stream_response(self):
         pass
 
-    async def _non_stream_response(self, client: AsyncOpenAI, kwargs: dict[str, Any],):
+    async def _non_stream_response(
+            self,
+            client: AsyncOpenAI,
+            kwargs: dict[str, Any],
+            ) -> StreamEvent:
         response = await client.chat.completions.create(**kwargs)
         choices = response.choices[0]
         message = choices.message
@@ -48,10 +60,10 @@ class LLMClient:
         usage = None
         if response.usage:
             usage = TokenUsage(
-                    prompt_tokens=response.usage.prompt_token,
+                    prompt_tokens=response.usage.prompt_tokens,
                     completion_tokens=response.usage.completion_tokens,
                     total_tokens=response.usage.total_tokens,
-                    cached_tokens=response.prompt_token_details.cached_tokens,
+                    cached_tokens=response.usage.prompt_tokens_details.cached_tokens,
                     )
 
         return StreamEvent(
