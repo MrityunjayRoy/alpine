@@ -3,8 +3,13 @@ from typing import Any
 from collections.abc import AsyncGenerator
 
 import asyncio
+import os
+from dotenv import load_dotenv
 
 from alpine.client.response import StreamEvent, TextDelta, TokenUsage, EventType
+
+
+load_dotenv()
 
 class LLMClient:
     def __init__(self) -> None: 
@@ -15,7 +20,7 @@ class LLMClient:
         if self._client is None:
             self._client = AsyncOpenAI(
                         base_url="https://openrouter.ai/api/v1/",
-                        api_key=""
+                        api_key=os.getenv("CLIENT_API_KEY")
                     )
         return self._client
 
