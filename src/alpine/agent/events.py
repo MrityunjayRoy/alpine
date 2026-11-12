@@ -27,9 +27,9 @@ class AgentEvent:
                 )
 
     @classmethod
-    def agent_end(cls, response: str, usage: TokenUsage | None = None) -> AgentEvent:
+    def agent_end(cls, response: str | None = None, usage: TokenUsage | None = None) -> AgentEvent:
         return cls(
-                type=AgentEventType.AGENT_START,
+                type=AgentEventType.AGENT_ENDING,
                 data={
                     "response": response,
                     "usage": usage.__dict__ if usage else None,

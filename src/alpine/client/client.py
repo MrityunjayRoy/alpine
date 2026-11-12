@@ -6,7 +6,7 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
-from alpine.client.response import StreamEvent, TextDelta, TokenUsage, EventType
+from alpine.client.response import StreamEvent, TextDelta, TokenUsage, StreamEventType
 
 
 load_dotenv()
@@ -58,7 +58,7 @@ class LLMClient:
                     await asyncio.sleep(wait_time)
                 else:
                     yield StreamEvent(
-                            type=EventType.ERROR,
+                            type=StreamEventType.ERROR,
                             error = "Rate limit exceeded!!"
                             )
 
@@ -69,7 +69,7 @@ class LLMClient:
                     await asyncio.sleep(wait_time)
                 else:
                     yield StreamEvent(
-                            type=EventType.ERROR,
+                            type=StreamEventType.ERROR,
                             error = "Rate limit exceeded!!"
                             )
 
@@ -105,12 +105,12 @@ class LLMClient:
 
             if delta.content:
                 yield StreamEvent(
-                        type=EventType.TEXT_DELTA,
+                        type=StreamEventType.TEXT_DELTA,
                         text_delta=TextDelta(delta.content),
                         )
 
         yield StreamEvent(
-                type=EventType.MESSAGE_COMPLETE,
+                type=StreamEventType.MESSAGE_COMPLETE,
                 finish_reason=finish_reason,
                 usage=usage,
                 )
@@ -138,7 +138,7 @@ class LLMClient:
                     )
 
         return StreamEvent(
-                type=EventType.MESSAGE_COMPLETE,
+                type=StreamEventType.MESSAGE_COMPLETE,
                 text_delta=text_delta,
                 finish_reason=None,
                 usage=usage
