@@ -3,15 +3,17 @@ from collections.abc import AsyncGenerator
 from alpine.agent.events import AgentEvent, AgentEventType
 from alpine.client.client import LLMClient
 from alpine.client.response import StreamEventType
+from alpine.context.manager import ContextManager
 
 
 class Agent:
     def __init__(self) -> None:
         self.client = LLMClient()
+        self.context_manager = ContextManager()
 
     async def run(self, message: str):
         yield AgentEvent.agent_start(message)
-        # add user message to context
+        self.context_manager.add_user_message(content=message)
 
         final_response_text: str | None = None
 
@@ -24,10 +26,9 @@ class Agent:
         yield AgentEvent.agent_end(final_response_text)
 
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent, None]:
-        message = [{"role":"system", "content":"hey what are you doing?"}]
         response_text: str = ""
 
-        async for event in self.client.chat_Completion(message, True):
+        async for event in self.client.chat_Completion(self.context_manager.get_messages(), True):
             if event.type == StreamEventType.TEXT_DELTA:
                 if event.text_delta:
                     content = event.text_delta.content
@@ -35,7 +36,9 @@ class Agent:
                     yield AgentEvent.text_delta(content)
             elif event.type == StreamEventType.ERROR:
                 yield AgentEvent.agent_error(event.error or 'some error occurred')
-
+        
+        self.context_manager.add_agent_message(response_text)
+        
         if response_text:
             yield AgentEvent.text_complete(content=response_text)
 
