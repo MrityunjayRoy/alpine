@@ -30,8 +30,14 @@ class ToolResult:
             cls, 
             error: str,
             output: str = "",
+            **kwargs: Any,
             ):
-        return cls(success=False,output=output,error=error)
+        return cls(
+                success=False,
+                output=output,
+                error=error,
+                **kwargs
+                )
 
     @classmethod
     def success_result(
