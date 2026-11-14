@@ -21,11 +21,11 @@ class ReadFileParams(BaseModel):
     limit: int | None = Field(
             None,
             ge=1,
-            description="maximum number of files to read."
+            description="maximum number of lines to read."
             )
 
 class ReadFileTool(Tool):
-    name = "read_tool"
+    name = "read_file"
     description = (
             "Read the contents of a text file. Returns the file content with line numbers. "
             "For large files, use offset and limit to read specific portions. "

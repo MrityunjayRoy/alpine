@@ -1,6 +1,5 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from sys import exception
 from typing import Any
 from pydantic import BaseModel, ValidationError
 import abc
@@ -32,7 +31,7 @@ class ToolResult:
             error: str,
             output: str = "",
             ):
-        return cls(success=False,output=output)
+        return cls(success=False,output=output,error=error)
 
     @classmethod
     def success_result(
@@ -84,10 +83,10 @@ class Tool(abc.ABC):
                 for error in e.errors():
                     field = ".".join(str(x) for x in error.get('loc', []))
                     msg = error.get("msg", "ValidationError")
-                    errors.append(f"parameter '{field}' : '{msg}")
+                    errors.append(f"parameter '{field}' : '{msg}'")
 
                 return errors
-            except exception as e:
+            except Exception as e:
                 return [str(e)]
 
         return []

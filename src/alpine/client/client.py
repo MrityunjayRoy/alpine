@@ -70,7 +70,7 @@ class LLMClient:
                 else:
                     yield StreamEvent(
                             type=StreamEventType.ERROR,
-                            error = "Rate limit exceeded!!"
+                            error = "Error connecting to API"
                             )
 
                     return
