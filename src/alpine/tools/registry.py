@@ -3,14 +3,15 @@ from pathlib import Path
 from typing import Any
 
 from alpine.tools.base_tool import Tool, ToolInvocation, ToolResult
+from alpine.tools.builtin import get_all_builtin_tools
 
 logger = logging.getLogger(__name__)
 
 class ToolRegistry:
     def __init__(self) -> None:
-        self._tools = dict[str, Tool] = {}
+        self._tools: dict[str, Tool] = {}
 
-    def registry(self, tool: Tool) -> None:
+    def register(self, tool: Tool) -> None:
         if tool.name in self._tools:
             logger.warning(f"Overwriting existing tool: {tool.name}")
 
@@ -41,7 +42,7 @@ class ToolRegistry:
     def get_schemas(self) -> list[dict[str, Any]]:
         return [tool.to_openai_schema() for tool in self.get_tools()]
 
-    async def invoke(self, name: str, params: dict[str, Any], cwd: Path | None):
+    async def invoke(self, name: str, params: dict[str, Any], cwd: Path):
         tool = self.get(name)
         if tool is None:
             return ToolResult.err_result(f"Tool does not exists: {name}", metadata={"tool_name": name})
@@ -63,4 +64,19 @@ class ToolRegistry:
         try:
             await tool.execute(invocations)
         except Exception as e:
-            pass
+            logger.exception(f"Tool {name} raised unexpected error")
+            return ToolResult.err_result(
+                    f"Internal Error: {str(e)}",
+                    metadata={
+                        "tool_name", name,
+                        }
+                    ),
+
+def create_default_registry() -> ToolRegistry:
+    registery = ToolRegistry()
+
+    for tool_class in get_all_builtin_tools():
+        registery.register(tool_class())
+
+    return registery
+

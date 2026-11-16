@@ -16,6 +16,10 @@ class StreamEventType(str, Enum):
     MESSAGE_COMPLETE = "message_complete"
     ERROR = "error"
 
+    TOOL_CALL_START = "tool_call_start"
+    TOOL_CALL_DELTA = "tool_call_delta"
+    TOOL_CALL_COMPLETE = "tool_call_complete"
+
 @dataclass
 class TokenUsage:
     prompt_tokens: int = 0
@@ -32,10 +36,24 @@ class TokenUsage:
                 )
 
 @dataclass
+class ToolCallDelta:
+    call_id: str
+    name: str | None = None
+    arguments_delta:str = ""
+
+@dataclass
+class ToolCall:
+    call_id: str
+    name: str | None = None
+    arguments:str = ""
+
+@dataclass
 class StreamEvent:
     type: StreamEventType
     text_delta: TextDelta | None = None
     error: str | None = None
     finish_reason: str | None = None
     usage: TokenUsage | None = None
+    tool_call_delta: ToolCallDelta | None = None
+    tool_call: ToolCall | None = None
 

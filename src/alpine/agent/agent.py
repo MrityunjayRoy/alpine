@@ -4,12 +4,14 @@ from alpine.agent.events import AgentEvent, AgentEventType
 from alpine.client.client import LLMClient
 from alpine.client.response import StreamEventType
 from alpine.context.manager import ContextManager
+from alpine.tools.registry import create_default_registry
 
 
 class Agent:
     def __init__(self) -> None:
         self.client = LLMClient()
         self.context_manager = ContextManager()
+        self.tool_registry = create_default_registry()
 
     async def run(self, message: str):
         yield AgentEvent.agent_start(message)
@@ -28,7 +30,12 @@ class Agent:
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent, None]:
         response_text: str = ""
 
-        async for event in self.client.chat_Completion(self.context_manager.get_messages(), True):
+        tool_schemas = self.tool_registry.get_schemas()
+
+        async for event in self.client.chat_Completion(
+                self.context_manager.get_messages(),
+                tools=tool_schemas if tool_schemas else None,
+                ):
             if event.type == StreamEventType.TEXT_DELTA:
                 if event.text_delta:
                     content = event.text_delta.content
