@@ -15,8 +15,8 @@ class ToolRegistry:
         if tool.name in self._tools:
             logger.warning(f"Overwriting existing tool: {tool.name}")
 
-            self._tools[tool.name] = tool
-            logger.debug(f"Registered tool: {tool.name}")
+        self._tools[tool.name] = tool
+        logger.debug(f"Registered tool: {tool.name}")
 
     def unregister(self, name: str) -> bool:
         if name in self._tools:
