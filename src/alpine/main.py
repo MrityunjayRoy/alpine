@@ -1,5 +1,6 @@
 import asyncio
 import sys
+
 import click
 
 from alpine.agent.agent import Agent
@@ -7,6 +8,7 @@ from alpine.agent.events import AgentEventType
 from alpine.ui.tui import TUI, get_console
 
 console = get_console()
+
 
 class CLI:
     def __init__(self) -> None:
@@ -36,24 +38,24 @@ class CLI:
             elif event.type == AgentEventType.TEXT_COMPLETE:
                 final_response = event.data.get("content")
                 if assistant_streaming:
-                   self.tui.end_assistant()
-                   assistant_streaming = False
+                    self.tui.end_assistant()
+                    assistant_streaming = False
             elif event.type == AgentEventType.AGENT_ERROR:
                 error = event.data.get("error")
                 console.print(f"\n[error]Error: {error}[/error]")
         return final_response
 
+
 @click.command()
 @click.argument("prompt", required=False)
-def main(
-        prompt: str | None
-        ):
+def main(prompt: str | None):
     cli = CLI()
     # messages = [{"role":"user", "content": prompt}]
     if prompt:
         result = asyncio.run(cli.run_single(prompt))
         if result is None:
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
