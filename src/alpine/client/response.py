@@ -14,7 +14,7 @@ class TextDelta:
         return self.content
 
 class StreamEventType(str, Enum):
-    TEXT_DELTA = "text_delta" 
+    TEXT_DELTA = "text_delta"
     MESSAGE_COMPLETE = "message_complete"
     ERROR = "error"
 
@@ -48,6 +48,19 @@ class ToolCall:
     call_id: str
     name: str | None = None
     arguments:Any = ""
+
+@dataclass
+class ToolResultMessage:
+    tool_call_id: str
+    content: str
+    is_error: bool = False
+
+    def to_openai_message(self) -> dict[str, Any]:
+        return{
+            'role': 'tool',
+            'tool_call_id': self.tool_call_id,
+            'content': self.content,
+        }
 
 @dataclass
 class StreamEvent:

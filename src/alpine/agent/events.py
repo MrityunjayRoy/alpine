@@ -1,18 +1,24 @@
 from __future__ import annotations
-from typing import Any
+
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 from alpine.client.response import TokenUsage
+from alpine.tools.base_tool import ToolResult
 
 
 class AgentEventType(str, Enum):
     AGENT_START = "agent_start"
     AGENT_ENDING = "agent_ending"
-    AGENT_ERROR= "agent_error"
+    AGENT_ERROR = "agent_error"
 
     TEXT_DELTA = "text_delta"
     TEXT_COMPLETE = "text_complete"
+
+    TOOL_CALL_START = "tool_call_start"
+    TOOL_CALL_COMPLETE="tool_call_complete"
+
 
 @dataclass
 class AgentEvent:
@@ -22,40 +28,82 @@ class AgentEvent:
     @classmethod
     def agent_start(cls, message: str) -> AgentEvent:
         return cls(
-                type=AgentEventType.AGENT_START,
-                data={ "message": message, },
-                )
+            type=AgentEventType.AGENT_START,
+            data={
+                "message": message,
+            },
+        )
 
     @classmethod
-    def agent_end(cls, response: str | None = None, usage: TokenUsage | None = None) -> AgentEvent:
+    def agent_end(
+        cls, response: str | None = None, usage: TokenUsage | None = None
+    ) -> AgentEvent:
         return cls(
-                type=AgentEventType.AGENT_ENDING,
-                data={
-                    "response": response,
-                    "usage": usage.__dict__ if usage else None,
-                    }
-                )
+            type=AgentEventType.AGENT_ENDING,
+            data={
+                "response": response,
+                "usage": usage.__dict__ if usage else None,
+            },
+        )
 
     @classmethod
-    def agent_error(cls, error: str, details: dict[str, Any] | None = None) -> AgentEvent:
+    def agent_error(
+        cls, error: str, details: dict[str, Any] | None = None
+    ) -> AgentEvent:
         return cls(
-                type=AgentEventType.AGENT_ERROR,
-                data={
-                    "error": error,
-                    "details": details or {}, 
-                    }
-                )
+            type=AgentEventType.AGENT_ERROR,
+            data={
+                "error": error,
+                "details": details or {},
+            },
+        )
 
     @classmethod
     def text_delta(cls, content: str) -> AgentEvent:
         return cls(
-                type=AgentEventType.TEXT_DELTA,
-                data={ "content": content, },
-                )
+            type=AgentEventType.TEXT_DELTA,
+            data={
+                "content": content,
+            },
+        )
 
     @classmethod
     def text_complete(cls, content: str) -> AgentEvent:
         return cls(
-                type=AgentEventType.TEXT_COMPLETE,
-                data={ "content": content, },
-                )
+            type=AgentEventType.TEXT_COMPLETE,
+            data={
+                "content": content,
+            },
+        )
+
+    @classmethod
+    def tool_call_start(
+        cls, call_id: str | None = None, name: str | None = None, args: dict[str, Any] | None = None
+    ) -> AgentEvent:
+        return cls(
+            type=AgentEventType.TOOL_CALL_START,
+            data={
+                "call_id": call_id,
+                "name": name,
+                "arguments": args,
+            },
+        )
+
+    @classmethod
+    def tool_call_complete(
+        cls,
+        call_id: str | None = None,
+        name: str | None = None,
+        result: ToolResult | None = None,
+    ) -> AgentEvent:
+        return cls(
+            type=AgentEventType.TOOL_CALL_COMPLETE,
+            data={
+                "call_id": call_id,
+                "name": name,
+                "success": result.success,
+                "output": result.output,
+                "metadata": result.metadata,
+                "truncated": result.truncated,
+            },
+        )

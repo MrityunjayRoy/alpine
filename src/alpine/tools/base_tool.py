@@ -27,7 +27,7 @@ class ToolResult:
 
     @classmethod
     def err_result(
-            cls, 
+            cls,
             error: str,
             output: str = "",
             **kwargs: Any,
@@ -41,7 +41,7 @@ class ToolResult:
 
     @classmethod
     def success_result(
-            cls, 
+            cls,
             output: str,
             **kwargs: Any,
             ):
@@ -51,6 +51,12 @@ class ToolResult:
                 error=None,
                 **kwargs,
                 )
+
+    def to_model_output(self) -> str:
+        if self.success:
+            return self.output
+
+        return f"Error: {self.error}\n\nOutput:\n{self.output}"
 
 @dataclass
 class ToolConfirmation:
@@ -70,7 +76,7 @@ class Tool(abc.ABC):
 
     def __init__(self) -> None:
         pass
-    
+
     @property
     def schema(self) -> dict[str, Any] | type["BaseModel"]:
         raise NotImplementedError("Tool must define schema property or class attributes")
@@ -141,6 +147,6 @@ class Tool(abc.ABC):
             else:
                 result["parameters"] = schema
 
-            return result 
+            return result
 
         raise ValueError(f"Invalid schema type for tool {self.name}: {type(schema)}")
